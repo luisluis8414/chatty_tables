@@ -7,6 +7,37 @@ const client = new OpenAI({
   apiKey: process.env["OPENAI_API_KEY"],
 });
 
+const validateSQLQuery = (query: string): boolean => {
+  const lowerCaseQuery = query.toLowerCase();
+
+  if (!lowerCaseQuery.trim().startsWith("select")) {
+    console.error("Error: Only SELECT queries are allowed.");
+    return false;
+  }
+
+  const prohibitedKeywords = [
+    "insert",
+    "update",
+    "delete",
+    "drop",
+    "alter",
+    "create",
+    "truncate",
+    "merge",
+    "grant",
+    "revoke",
+  ];
+
+  for (const keyword of prohibitedKeywords) {
+    if (lowerCaseQuery.includes(keyword)) {
+      console.error(`Error: Query contains prohibited keyword: ${keyword}`);
+      return false;
+    }
+  }
+
+  return true;
+};
+
 const getSchemaDescription = async () => {
   const dbClient = new Client({
     host: "localhost",
@@ -59,12 +90,47 @@ const getSchemaDescription = async () => {
   }
 };
 
+const executeSQLQuery = async (query: string) => {
+  const dbClient = new Client({
+    host: "localhost",
+    port: 5432,
+    user: "postgres",
+    password: "postgres",
+    database: "postgres",
+  });
+
+  try {
+    await dbClient.connect();
+    console.log("Connected to the database.");
+
+    const queries = query
+      .split(";")
+      .map((q) => q.trim())
+      .filter((q) => q);
+
+    for (const singleQuery of queries) {
+      if (!validateSQLQuery(singleQuery)) {
+        throw new Error("Invalid query. Only SELECT queries are allowed.");
+      }
+
+      console.log("Executing Query:", singleQuery);
+      const result = await dbClient.query(singleQuery);
+      console.log("Query Result:", result.rows);
+    }
+  } catch (error) {
+    console.error("Error executing SQL query:", error);
+  } finally {
+    await dbClient.end();
+    console.log("Database connection closed.");
+  }
+};
+
 const fetchSQLQuery = async () => {
   try {
     const schemaDescription = await getSchemaDescription();
     const postgresVersion = await getPostgresVersion();
 
-    const system_prompt = `You are a SQL expert. Write SQL queries for PostgreSQL version ${postgresVersion}. Given the following database schema:\n${schemaDescription}\nWrite a SQL query to answer the user's question. Respond only with the SQL query.`;
+    const system_prompt = `You are a SQL expert. Write only SELECT queries for PostgreSQL version ${postgresVersion}. Given the following database schema:\n${schemaDescription}\nWrite a SQL query to answer the user's question. Respond only with the SQL query.`;
 
     const user_prompt = process.argv.slice(2).join(" ");
 
@@ -95,37 +161,6 @@ const fetchSQLQuery = async () => {
     }
   } catch (error) {
     console.error("Error fetching response from OpenAI:", error);
-  }
-};
-
-const executeSQLQuery = async (query: string) => {
-  const dbClient = new Client({
-    host: "localhost",
-    port: 5432,
-    user: "postgres",
-    password: "postgres",
-    database: "postgres",
-  });
-
-  try {
-    await dbClient.connect();
-    console.log("Connected to the database.");
-
-    const queries = query
-      .split(";")
-      .map((q) => q.trim())
-      .filter((q) => q);
-
-    for (const singleQuery of queries) {
-      console.log("Executing Query:", singleQuery);
-      const result = await dbClient.query(singleQuery);
-      console.log("Query Result:", result.rows);
-    }
-  } catch (error) {
-    console.error("Error executing SQL query:", error);
-  } finally {
-    await dbClient.end();
-    console.log("Database connection closed.");
   }
 };
 
