@@ -13,19 +13,19 @@ services:
       - ./initdb:/docker-entrypoint-initdb.d
     restart: unless-stopped
 
-  ollama:
-    image: ollama/ollama:latest
-    ports:
-      - 11435:11434
-    volumes:
-      - ollama:/root/.ollama
-    container_name: ollama
-    pull_policy: always
-    tty: true
-    restart: always
-    entrypoint: /bin/sh
-    command: -c "ollama serve & ollama pull deepseek-coder:6.7b-instruct && wait"
+  # ollama:
+  #   image: ollama/ollama:latest
+  #   ports:
+  #     - 11435:11434
+  #   volumes:
+  #     - ollama:/root/.ollama
+  #   container_name: ollama
+  #   pull_policy: always
+  #   tty: true
+  #   restart: always
+  #   entrypoint: /bin/sh
+  #   command: -c "ollama serve & ollama pull deepseek-coder:6.7b-instruct && wait"
 
 volumes:
   postgres_data:
-  ollama:
+  # ollama:

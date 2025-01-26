@@ -1,15 +1,6 @@
 # Chatty Tables - A Natural Language Interface for PostgreSQL
 
-This project is a Node.js application that integrates with OpenAI's API to generate SQL queries based on natural language input and executes those queries against a PostgreSQL database. It uses OpenAI's GPT model to interpret user queries and dynamically generate SQL statements.
-
----
-
-## Features
-
-- Accepts natural language queries from the command line.
-- Uses OpenAI's API to generate SQL queries based on a predefined database schema.
-- Executes the generated SQL queries against a PostgreSQL database.
-- Outputs the query results to the console.
+This project is a node script that integrates with OpenAI's API to generate SQL queries based on natural language input and executes those queries against a PostgreSQL database. It uses OpenAI's GPT model to interpret user queries and dynamically generate SQL statements.
 
 ---
 
@@ -17,7 +8,7 @@ This project is a Node.js application that integrates with OpenAI's API to gener
 
 Before running this application, ensure you have the following installed:
 
-1. **Node.js** (v22.5.1)
+1. **Node.js** (i used v22.5.1)
 2. **npm**
 3. **Docker**
 4. **OpenAI API Key**
@@ -51,28 +42,9 @@ Replace `your_openai_api_key` with your actual OpenAI API key.
 
 ### 4. Set Up PostgreSQL
 
-Ensure you have a PostgreSQL database running. You can use the following Docker Compose configuration to set up a PostgreSQL container:
+The postgres container inits with test data found in the `initb/init.sql`
 
-```bash
-services:
-  postgres:
-    image: postgres:17-alpine
-    container_name: postgres
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: postgres
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    restart: unless-stopped
-
-volumes:
-  postgres_data:
-```
-
-Run the container:
+Start the PostgreSQL container:
 
 ```bash
 docker-compose up -d
@@ -80,18 +52,24 @@ docker-compose up -d
 
 ## Usage
 
-### Run the Application
-
-To run the application, use the following command:
+### Build
 
 ```bash
-node index.js "<your natural language query>"
+npm run build
+```
+
+### Run
+
+To run the script, use the following command:
+
+```bash
+npm run start "<your natural language query>"
 ```
 
 Replace `<your natural language query>` with your desired query. For example:
 
 ```bash
-node index.js "List all products that are out of stock"
+npm run start "List all products that are out of stock"
 ```
 
 ## Example Prompts
@@ -166,6 +144,8 @@ Here are some example natural language queries you can use to test the applicati
 
 ### Example Output
 
+#### Query: List all products that are out of stock.
+
 ```bash
 Extracted SQL Query: SELECT * FROM products WHERE stock_quantity = 0;
 Connected to the database.
@@ -183,23 +163,3 @@ Query Result: [
 ]
 Database connection closed.
 ```
-
-## Configuration
-
-### Database Connection
-
-The database connection is configured in the `index.js` file. If your PostgreSQL setup differs, update the following section:
-
-```bash
-const dbClient = new Client({
-  host: 'localhost',
-  port: 5432,
-  user: 'postgres',
-  password: 'postgres',
-  database: 'postgres',
-});
-```
-
-### OpenAI API
-
-The OpenAI API key is loaded from the `.env` file. Ensure the key is valid and has access to the GPT model specified in the code.
