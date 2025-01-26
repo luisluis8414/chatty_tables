@@ -191,4 +191,6 @@ const getPostgresVersion = async () => {
   }
 };
 
-fetchSQLQuery();
+console.time("fetchSQLQuery");
+await fetchSQLQuery();
+console.timeEnd("fetchSQLQuery");
