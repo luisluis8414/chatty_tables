@@ -66,8 +66,6 @@ const fetchSQLQuery = async () => {
 
     const system_prompt = `You are a SQL expert. Write SQL queries for PostgreSQL version ${postgresVersion}. Given the following database schema:\n${schemaDescription}\nWrite a SQL query to answer the user's question. Respond only with the SQL query.`;
 
-    console.log(system_prompt);
-
     const user_prompt = process.argv.slice(2).join(" ");
 
     if (!user_prompt) {
